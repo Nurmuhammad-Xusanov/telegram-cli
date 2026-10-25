@@ -1,7 +1,7 @@
 import asyncio
-from textual import work
+from textual import work, events
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical, Container
+from textual.containers import Horizontal, Vertical
 from textual.widgets import Input, Static, OptionList, RichLog
 from textual.widgets.option_list import Option
 from textual.binding import Binding
@@ -28,11 +28,8 @@ class TelegramTUI(App):
         margin: 0;
     }
 
+    /* Left Panel: Search & Chats */
     #left-panel {
-        width: 30;
-        min-width: 24;
-        max-width: 38;
-        border-right: solid #222222;
         background: #000000;
         padding: 0;
         margin: 0;
@@ -82,9 +79,8 @@ class TelegramTUI(App):
         text-style: bold;
     }
 
-
+    /* Right Panel: Messages & Input */
     #right-panel {
-        width: 1fr;
         height: 100%;
         background: #000000;
         padding: 0;
@@ -124,6 +120,48 @@ class TelegramTUI(App):
         border-top: solid #555555;
         background: #0a0a0a;
     }
+
+    /* RESPONSIVE LAYOUT MODES */
+
+    /* Desktop Mode (Width >= 75): Side-by-side split */
+    .desktop #left-panel {
+        width: 32;
+        min-width: 25;
+        max-width: 38;
+        border-right: solid #222222;
+        display: block;
+    }
+
+    .desktop #right-panel {
+        width: 1fr;
+        display: block;
+    }
+
+    /* Mobile Mode (Width < 75): Fullscreen Single Column */
+    .mobile #left-panel {
+        width: 100%;
+        border-right: none;
+    }
+
+    .mobile #right-panel {
+        width: 100%;
+    }
+
+    .mobile.in-list #left-panel {
+        display: block;
+    }
+
+    .mobile.in-list #right-panel {
+        display: none;
+    }
+
+    .mobile.in-chat #left-panel {
+        display: none;
+    }
+
+    .mobile.in-chat #right-panel {
+        display: block;
+    }
     """
 
     BINDINGS = [
@@ -131,7 +169,7 @@ class TelegramTUI(App):
         Binding("f2", "toggle_channels", "Channels", show=False),
         Binding("f3", "open_last_media", "Open Media", show=False),
         Binding("f5", "refresh_chats", "Refresh", show=False),
-        Binding("escape", "focus_chats", "Chats", show=False),
+        Binding("escape", "handle_escape", "Back / Chats", show=False),
         Binding("slash", "focus_search", "Search", show=False),
     ]
 
@@ -144,6 +182,7 @@ class TelegramTUI(App):
         self.current_dialog = None
         self.current_entity = None
         self.media_messages = []
+        self.mobile_view = "list"  # "list" or "chat"
 
     def compose(self) -> ComposeResult:
         with Horizontal(id="main-container"):
@@ -153,14 +192,37 @@ class TelegramTUI(App):
             with Vertical(id="right-panel"):
                 yield Static("Select a chat...", id="chat-header")
                 yield RichLog(id="messages-log", wrap=True, highlight=False, markup=True)
-                yield Input(placeholder="Message... (/1 to open media, F3: last media)", id="message-input")
-
-
+                yield Input(placeholder="Message... (/1 open, F3 media)", id="message-input")
 
     async def on_mount(self) -> None:
         self.tg.set_on_new_message(self.handle_incoming_message)
+        self.update_layout()
         self.load_dialogs()
         self.query_one("#chats-list").focus()
+
+    def on_resize(self, event: events.Resize) -> None:
+        """Handle screen resize dynamically for mobile/desktop"""
+        self.update_layout()
+
+    def update_layout(self) -> None:
+        """Apply mobile or desktop styles based on terminal width"""
+        width = self.size.width
+        is_mobile = width < 75
+
+        self.remove_class("mobile")
+        self.remove_class("desktop")
+        self.remove_class("in-list")
+        self.remove_class("in-chat")
+
+        if is_mobile:
+            self.add_class("mobile")
+            if self.mobile_view == "chat" and self.current_dialog:
+                self.add_class("in-chat")
+            else:
+                self.mobile_view = "list"
+                self.add_class("in-list")
+        else:
+            self.add_class("desktop")
 
     @work(exclusive=True)
     async def load_dialogs(self) -> None:
@@ -187,6 +249,8 @@ class TelegramTUI(App):
         option_list.clear_options()
 
         active_index = None
+        is_mobile = self.size.width < 75
+        max_name_len = 35 if is_mobile else 23
 
         for d in self.all_dialogs:
             name = d["name"].strip() or "Unnamed"
@@ -202,8 +266,7 @@ class TelegramTUI(App):
             has_unread = d["unread_count"] > 0
             badge = " [bold white]1[/bold white]" if has_unread else ""
 
-            max_len = 20 if has_unread else 23
-            truncated_name = name[:max_len] if len(name) > max_len else name
+            truncated_name = name[:max_name_len] if len(name) > max_name_len else name
 
             if is_active:
                 line = f"[bold white]› {truncated_name}[/bold white]{badge}"
@@ -222,7 +285,7 @@ class TelegramTUI(App):
             self.apply_filter(event.value)
 
     async def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        """Select a chat and mark messages as read on server"""
+        """Select a chat, expand to full screen on mobile, and mark read on server"""
         index = event.option_index
         if 0 <= index < len(self.filtered_dialogs):
             self.current_dialog = self.filtered_dialogs[index]
@@ -234,12 +297,17 @@ class TelegramTUI(App):
             await self.tg.mark_as_read(self.current_entity)
             self.apply_filter(self.query_one("#search-input", Input).value)
             
+            is_mobile = self.size.width < 75
+            back_tag = "[bold cyan][< Esc][/bold cyan] " if is_mobile else ""
             header = self.query_one("#chat-header", Static)
-            header.update(f"Chat: [bold]{self.current_dialog['name']}[/bold]")
+            header.update(f"{back_tag}Chat: [bold]{self.current_dialog['name']}[/bold]")
+            
+            # On mobile, switch to full-screen chat view
+            self.mobile_view = "chat"
+            self.update_layout()
             
             self.load_messages()
             self.query_one("#message-input").focus()
-
 
     @work(exclusive=True)
     async def load_messages(self) -> None:
@@ -349,7 +417,6 @@ class TelegramTUI(App):
             event.input.value = ""
             try:
                 sent_msg = await self.tg.send_text(self.current_entity, val)
-
                 if sent_msg:
                     self.render_message_line(sent_msg)
             except Exception as e:
@@ -392,10 +459,25 @@ class TelegramTUI(App):
                 break
         self.apply_filter(self.query_one("#search-input", Input).value)
 
-
-    def on_key(self, event) -> None:
-        if event.key == "escape":
+    def action_handle_escape(self) -> None:
+        """Handle Escape key: Go back to chats list on mobile or focus list on desktop"""
+        if self.size.width < 75 and self.mobile_view == "chat":
+            self.action_back_to_chats()
+        else:
             self.query_one("#chats-list").focus()
+
+    def action_back_to_chats(self) -> None:
+        """Switch back to full-screen chats list on mobile"""
+        self.mobile_view = "list"
+        self.update_layout()
+        self.apply_filter(self.query_one("#search-input", Input).value)
+        self.query_one("#chats-list").focus()
+
+    def on_click(self, event) -> None:
+        """Allow tapping chat header to go back to chats list on mobile"""
+        if self.size.width < 75 and self.mobile_view == "chat":
+            if hasattr(event, "widget") and event.widget and event.widget.id == "chat-header":
+                self.action_back_to_chats()
 
     def action_toggle_channels(self) -> None:
         self.show_channels = not self.show_channels
