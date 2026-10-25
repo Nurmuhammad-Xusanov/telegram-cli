@@ -11,6 +11,7 @@ class TelegramTUI(App):
     /* Zero blank space, Edge-to-Edge Pure Black OLED */
     * {
         box-sizing: border-box;
+        scrollbar-size-horizontal: 0;
     }
 
     Screen {
@@ -18,6 +19,23 @@ class TelegramTUI(App):
         color: #ffffff;
         padding: 0;
         margin: 0;
+        overflow-x: hidden;
+    }
+
+    /* Scrollbar styling for OLED */
+    ScrollBar {
+        background: #000000;
+        color: #222222;
+    }
+
+    ScrollBar > .scrollbar--bar {
+        color: #333333;
+        background: #000000;
+    }
+
+    ScrollBar.-horizontal {
+        display: none;
+        height: 0;
     }
 
     #main-container {
@@ -26,6 +44,7 @@ class TelegramTUI(App):
         background: #000000;
         padding: 0;
         margin: 0;
+        overflow-x: hidden;
     }
 
     /* Left Panel: Search & Chats */
@@ -34,6 +53,7 @@ class TelegramTUI(App):
         padding: 0;
         margin: 0;
         height: 100%;
+        overflow-x: hidden;
     }
 
     #search-input {
@@ -44,6 +64,7 @@ class TelegramTUI(App):
         background: #000000;
         color: #ffffff;
         padding: 0 1;
+        scrollbar-size-horizontal: 0;
     }
 
     #search-input:focus {
@@ -58,6 +79,8 @@ class TelegramTUI(App):
         padding: 0;
         margin: 0;
         scrollbar-size-vertical: 1;
+        scrollbar-size-horizontal: 0;
+        overflow-x: hidden;
     }
 
     OptionList > .option-list--option {
@@ -85,6 +108,7 @@ class TelegramTUI(App):
         background: #000000;
         padding: 0;
         margin: 0;
+        overflow-x: hidden;
     }
 
     #chat-header {
@@ -101,9 +125,11 @@ class TelegramTUI(App):
         height: 1fr;
         background: #000000;
         border: none;
-        padding: 1;
+        padding: 0 1;
         margin: 0;
         scrollbar-size-vertical: 1;
+        scrollbar-size-horizontal: 0;
+        overflow-x: hidden;
     }
 
     #message-input {
@@ -114,12 +140,14 @@ class TelegramTUI(App):
         color: #ffffff;
         padding: 0 1;
         margin: 0;
+        scrollbar-size-horizontal: 0;
     }
 
     #message-input:focus {
         border-top: solid #555555;
         background: #0a0a0a;
     }
+
 
     /* RESPONSIVE LAYOUT MODES */
 
