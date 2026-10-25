@@ -1,0 +1,19 @@
+# Telegram CLI sensitive data
+.env
+data/
+cache/
+*.session
+*.session-journal
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# OS / Editor
+.DS_Store
+.idea/
+.vscode/
