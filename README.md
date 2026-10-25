@@ -21,9 +21,10 @@ Anyone can set up and run this client in less than 2 minutes:
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/<your-username>/telegram-cli.git
+git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git
 cd telegram-cli
 ```
+
 
 ### 2. Create and activate a virtual environment
 ```bash
