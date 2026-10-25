@@ -218,8 +218,17 @@ class TelegramManager:
             file_path = await self.client.download_media(message, file=str(cache_dir))
             if file_path:
                 import subprocess
-                subprocess.Popen(["xdg-open", file_path])
-                return True, f"Opened: {file_path}"
+                import shutil
+                opener = None
+                for cmd in ["termux-open", "xdg-open", "open"]:
+                    if shutil.which(cmd):
+                        opener = cmd
+                        break
+                if opener:
+                    subprocess.Popen([opener, file_path])
+                    return True, f"Opened with {opener}: {file_path}"
+                return True, f"Saved to {file_path}"
             return False, "Failed to download."
         except Exception as e:
             return False, f"Error: {e}"
+

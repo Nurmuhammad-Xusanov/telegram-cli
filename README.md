@@ -59,6 +59,27 @@ python3 main.py
 
 ---
 
+## 📱 Android (Termux / OneUI) Setup
+
+Run this minimal Telegram client directly on your Android phone (Samsung OneUI / Android 14+):
+
+1. Install **[Termux](https://f-droid.org/en/packages/com.termux/)** from F-Droid (or GitHub releases).
+2. Open Termux and run:
+   ```bash
+   pkg update -y && pkg install -y git
+   git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git
+   cd telegram-cli
+   bash setup_android.sh
+   ```
+3. Edit your `.env` file (`nano .env`) with your API credentials.
+4. Launch anytime in Termux simply by typing:
+   ```bash
+   tg
+   ```
+
+---
+
+
 ## ⌨️ Keyboard Shortcuts & Commands
 
 ### Navigation:
