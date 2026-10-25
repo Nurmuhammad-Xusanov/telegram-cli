@@ -76,14 +76,12 @@ You can run this client directly on your Android phone (Samsung OneUI / Android 
 1. Download and install **[Termux](https://f-droid.org/en/packages/com.termux/)** from F-Droid.
 2. Download and install **[Termux:Widget](https://f-droid.org/en/packages/com.termux.widget/)** from F-Droid.
 
-### Step 2: Set up the project in Termux
-Open Termux and run:
+### Step 2: One-Line Automatic Setup
+Open Termux and run this single command:
 ```bash
-pkg update -y && pkg install -y git
-git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git
-cd telegram-cli
-bash setup_android.sh
+pkg update -y && pkg install -y git python && git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git && cd telegram-cli && bash setup_android.sh
 ```
+> This automatically installs all dependencies, creates the global `tg` command, and configures the `Termux:Widget` shortcut!
 
 ### Step 3: Configure credentials
 ```bash
@@ -91,17 +89,14 @@ nano .env
 ```
 Paste your `TELEGRAM_API_ID` and `TELEGRAM_API_HASH`, then press `Ctrl + O`, `Enter`, `Ctrl + X` to save.
 
-### Step 4: Create 1-Tap Homescreen Icon (Termux:Widget)
-Inside Termux, run this single command to create a desktop launcher:
-```bash
-mkdir -p ~/.shortcuts && echo "tg" > ~/.shortcuts/Telegram && chmod +x ~/.shortcuts/Telegram
-```
+### Step 4: Launch!
+- **From Termux:** Simply type `tg` and press Enter.
+- **From Android Home Screen (1-Tap Icon):**
+  1. Long-press on an empty area of your phone's Home Screen and tap **Widgets**.
+  2. Select **Termux:Widget** (or **Termux Shortcut**).
+  3. Pick **Telegram** from the list.
+  4. Done! It now opens like a native app directly from your home screen.
 
-### Step 5: Add Widget to your Android Home Screen
-1. Go to your phone's Home Screen (Desktop).
-2. Long-press on an empty area and tap **Widgets**.
-3. Find **Termux:Widget** and drag the **Telegram** shortcut to your home screen.
-4. **Done!** Tapping this icon will now open your distraction-free OLED Telegram directly like a native app.
 
 ---
 

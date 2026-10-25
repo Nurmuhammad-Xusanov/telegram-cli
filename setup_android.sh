@@ -22,8 +22,8 @@ if [ ! -f .env ]; then
     echo "(!) Please edit .env with your TELEGRAM_API_ID and TELEGRAM_API_HASH"
 fi
 
-# Create global shortcut in Termux ($PREFIX/bin/telegram-cli and tg)
-echo "[4/4] Creating terminal shortcut 'tg' and 'telegram-cli'..."
+# Create global terminal shortcuts ($PREFIX/bin/telegram-cli and tg)
+echo "[4/5] Creating terminal commands 'tg' and 'telegram-cli'..."
 BIN_DIR="$PREFIX/bin"
 PROJECT_DIR="$(pwd)"
 
@@ -36,8 +36,21 @@ EOF
 chmod +x "$BIN_DIR/telegram-cli"
 ln -sf "$BIN_DIR/telegram-cli" "$BIN_DIR/tg"
 
+# Automatically create Termux:Widget desktop shortcut
+echo "[5/5] Creating Termux:Widget 1-tap launcher (~/.shortcuts/Telegram)..."
+SHORTCUTS_DIR="$HOME/.shortcuts"
+mkdir -p "$SHORTCUTS_DIR"
+cat <<EOF > "$SHORTCUTS_DIR/Telegram"
+#!/data/data/com.termux/files/usr/bin/bash
+cd "$PROJECT_DIR"
+python3 main.py "\$@"
+EOF
+chmod +x "$SHORTCUTS_DIR/Telegram"
+
 echo ""
 echo "=========================================="
 echo "  Setup Complete!                         "
-echo "  Run it anytime by typing: tg            "
+echo "  1. Run in terminal anytime: tg          "
+echo "  2. Or add 'Termux:Widget' to home screen"
 echo "=========================================="
+
