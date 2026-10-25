@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 680" width="380" height="680">
+  <defs>
+    <style>
+      .phone-frame { fill: #000000; stroke: #2a2a2a; stroke-width: 4; rx: 32; }
+      .bg { fill: #000000; }
+      .border { stroke: #1c1c1c; stroke-width: 1.5; }
+      .status-text { fill: #666666; font-family: sans-serif; font-size: 11px; }
+      .t-bold { fill: #ffffff; font-family: monospace; font-size: 11px; font-weight: bold; }
+      .t-norm { fill: #cccccc; font-family: monospace; font-size: 11px; }
+      .t-dim { fill: #666666; font-family: monospace; font-size: 10px; }
+      .t-active { fill: #ffffff; font-family: monospace; font-size: 11px; font-weight: bold; }
+      .t-badge { fill: #ffffff; font-family: monospace; font-size: 10px; font-weight: bold; }
+      .tag { fill: #ffffff; font-weight: bold; }
+      .active-bg { fill: #151515; }
+      .cursor { fill: #ffffff; }
+    </style>
+  </defs>
+
+  <!-- Phone Body -->
+  <rect x="2" y="2" width="376" height="676" class="phone-frame" rx="32"/>
+
+  <!-- Camera Notch / Dynamic Island -->
+  <rect x="140" y="10" width="100" height="18" fill="#111111" rx="9"/>
+  <circle cx="215" cy="19" r="4" fill="#050505"/>
+
+  <!-- Status Bar -->
+  <text x="35" y="24" class="status-text">12:45</text>
+  <text x="315" y="24" class="status-text">5G 98%</text>
+
+  <!-- App Header -->
+  <rect x="15" y="40" width="350" height="30" class="bg"/>
+  <line x1="15" y1="70" x2="365" y2="70" class="border"/>
+  <text x="25" y="60" class="t-bold">Chat: Alex Morgan</text>
+  <text x="310" y="60" class="t-dim">[Esc]</text>
+
+  <!-- Mobile Messages View -->
+  <text x="25" y="100" class="t-dim">14:10</text>
+  <text x="65" y="100" class="t-bold">Alex:</text>
+  <text x="105" y="100" class="t-norm">Did you check the file?</text>
+
+  <text x="25" y="130" class="t-dim">14:12</text>
+  <text x="65" y="130" class="t-bold">You:</text>
+  <text x="95" y="130" class="t-norm">Yes, looking at it now.</text>
+
+  <text x="25" y="160" class="t-dim">14:14</text>
+  <text x="65" y="160" class="t-bold">Alex:</text>
+  <text x="105" y="160" class="tag">[Photo #1]</text>
+
+  <text x="25" y="190" class="t-dim">14:15</text>
+  <text x="65" y="190" class="t-bold">You:</text>
+  <text x="95" y="190" class="t-norm">Opening via /1 in gallery.</text>
+
+  <text x="25" y="220" class="t-dim">14:16</text>
+  <text x="65" y="220" class="t-bold">Alex:</text>
+  <text x="105" y="220" class="tag">[Voice 12s #2]</text>
+
+  <text x="25" y="250" class="t-dim">14:18</text>
+  <text x="65" y="250" class="t-bold">You:</text>
+  <text x="95" y="250" class="t-norm">Sounds good!</text>
+
+  <!-- Mini Chat Drawer preview at bottom-middle -->
+  <rect x="25" y="320" width="330" height="240" fill="#080808" rx="8" stroke="#1c1c1c" stroke-width="1"/>
+  <text x="35" y="340" class="t-dim">CHATS (TAP OR ARROWS)</text>
+  <line x1="25" y1="350" x2="355" y2="350" class="border"/>
+
+  <rect x="25" y="352" width="330" height="26" class="active-bg"/>
+  <text x="35" y="369" class="t-active">› Alex Morgan</text>
+
+  <text x="45" y="395" class="t-bold">Sarah Connor</text>
+  <text x="330" y="395" class="t-badge">1</text>
+
+  <text x="45" y="421" class="t-norm">David Miller</text>
+  <text x="45" y="447" class="t-norm">Dev Team Group</text>
+  <text x="45" y="473" class="t-bold">Jessica Alba</text>
+  <text x="330" y="473" class="t-badge">1</text>
+  <text x="45" y="499" class="t-norm">Michael Scott</text>
+  <text x="45" y="525" class="t-norm">Rachel Green</text>
+
+  <!-- Message Input Bar at bottom -->
+  <line x1="15" y1="620" x2="365" y2="620" class="border"/>
+  <rect x="15" y="621" width="350" height="35" class="bg"/>
+  <text x="25" y="642" class="t-dim">Message... (/1 open, F3 media)</text>
+  <rect x="235" y="632" width="6" height="14" class="cursor"/>
+
+  <!-- Home Indicator Bar -->
+  <rect x="130" y="665" width="120" height="4" fill="#333333" rx="2"/>
+</svg>

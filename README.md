@@ -1,6 +1,18 @@
 # 🖤 Minimalist Telegram CLI (OLED & Dopamine-Free)
 
-A clean, distraction-free, and keyboard-driven **Terminal User Interface (TUI)** client for Telegram. Designed for digital minimalism, low dopamine consumption, and maximum focus.
+A clean, distraction-free, and keyboard-driven **Terminal User Interface (TUI)** client for Telegram. Built for digital minimalism, low dopamine consumption, and maximum focus on both **Linux Desktop** and **Android (Termux)**.
+
+---
+
+## 📸 Preview
+
+### 💻 Linux Desktop Terminal
+![Linux Desktop Preview](assets/preview-desktop.svg)
+
+### 📱 Android Mobile (Termux / OneUI)
+<p align="center">
+  <img src="assets/preview-mobile.svg" alt="Android Mobile Preview" width="340"/>
+</p>
 
 ---
 
@@ -15,16 +27,13 @@ A clean, distraction-free, and keyboard-driven **Terminal User Interface (TUI)**
 
 ---
 
-## 🚀 Step-by-Step Installation Tutorial
-
-Anyone can set up and run this client in less than 2 minutes:
+## 💻 Linux Desktop Installation
 
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git
 cd telegram-cli
 ```
-
 
 ### 2. Create and activate a virtual environment
 ```bash
@@ -45,7 +54,7 @@ pip install -r requirements.txt
    ```bash
    cp .env.example .env
    ```
-5. Edit `.env` with your preferred text editor (e.g. `nano .env`) and paste your credentials:
+5. Edit `.env` with your preferred editor and paste your credentials:
    ```env
    TELEGRAM_API_ID=12345678
    TELEGRAM_API_HASH=0123456789abcdef0123456789abcdef
@@ -59,26 +68,42 @@ python3 main.py
 
 ---
 
-## 📱 Android (Termux / OneUI) Setup
+## 📱 Android (Termux / OneUI) Step-by-Step Tutorial
 
-Run this minimal Telegram client directly on your Android phone (Samsung OneUI / Android 14+):
+You can run this client directly on your Android phone (Samsung OneUI / Android 14+) with a 1-tap Homescreen app icon using **Termux:Widget**:
 
-1. Install **[Termux](https://f-droid.org/en/packages/com.termux/)** from F-Droid (or GitHub releases).
-2. Open Termux and run:
-   ```bash
-   pkg update -y && pkg install -y git
-   git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git
-   cd telegram-cli
-   bash setup_android.sh
-   ```
-3. Edit your `.env` file (`nano .env`) with your API credentials.
-4. Launch anytime in Termux simply by typing:
-   ```bash
-   tg
-   ```
+### Step 1: Install Termux & Termux:Widget
+1. Download and install **[Termux](https://f-droid.org/en/packages/com.termux/)** from F-Droid.
+2. Download and install **[Termux:Widget](https://f-droid.org/en/packages/com.termux.widget/)** from F-Droid.
+
+### Step 2: Set up the project in Termux
+Open Termux and run:
+```bash
+pkg update -y && pkg install -y git
+git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git
+cd telegram-cli
+bash setup_android.sh
+```
+
+### Step 3: Configure credentials
+```bash
+nano .env
+```
+Paste your `TELEGRAM_API_ID` and `TELEGRAM_API_HASH`, then press `Ctrl + O`, `Enter`, `Ctrl + X` to save.
+
+### Step 4: Create 1-Tap Homescreen Icon (Termux:Widget)
+Inside Termux, run this single command to create a desktop launcher:
+```bash
+mkdir -p ~/.shortcuts && echo "tg" > ~/.shortcuts/Telegram && chmod +x ~/.shortcuts/Telegram
+```
+
+### Step 5: Add Widget to your Android Home Screen
+1. Go to your phone's Home Screen (Desktop).
+2. Long-press on an empty area and tap **Widgets**.
+3. Find **Termux:Widget** and drag the **Telegram** shortcut to your home screen.
+4. **Done!** Tapping this icon will now open your distraction-free OLED Telegram directly like a native app.
 
 ---
-
 
 ## ⌨️ Keyboard Shortcuts & Commands
 
@@ -96,7 +121,7 @@ Run this minimal Telegram client directly on your Android phone (Samsung OneUI /
 | `Ctrl + C` | Quit application |
 
 ### Chat Commands (typed into message input):
-- `/<id>` or `/open <id>` — Open media by its ID (e.g. `/1` or `/open 2`). Opens in your system's default media player.
+- `/<id>` or `/open <id>` — Open media by its ID (e.g. `/1` or `/open 2`). Opens in your system gallery/player.
 - `/send <path> [caption]` — Send a local photo, video, audio, or file to the active chat.
   - *Example:* `/send ~/Downloads/receipt.jpg Monthly payment`
   - *Example:* `/send ~/report.pdf`
