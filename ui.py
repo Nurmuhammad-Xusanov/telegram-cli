@@ -312,6 +312,29 @@ class TelegramTUI(App):
         if event.input.id == "search-input":
             self.apply_filter(event.value)
 
+    def update_chat_header(self, status_text=None) -> None:
+        """Render chat header with user name and online/offline status"""
+        if not self.current_dialog:
+            return
+
+        header = self.query_one("#chat-header", Static)
+        name = self.current_dialog["name"]
+        is_mobile = self.size.width < 75
+        back_tag = "[bold cyan][< Esc][/bold cyan] " if is_mobile else "Chat: "
+
+        if status_text is None and self.current_entity:
+            status_text = self.tg.get_entity_status(self.current_entity)
+
+        if status_text:
+            if status_text == "online":
+                status_part = " • [bold white]online[/bold white]"
+            else:
+                status_part = f" [dim]• {status_text}[/dim]"
+        else:
+            status_part = ""
+
+        header.update(f"{back_tag}[bold]{name}[/bold]{status_part}")
+
     async def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         """Select a chat, expand to full screen on mobile, and mark read on server"""
         index = event.option_index
@@ -325,10 +348,8 @@ class TelegramTUI(App):
             await self.tg.mark_as_read(self.current_entity)
             self.apply_filter(self.query_one("#search-input", Input).value)
             
-            is_mobile = self.size.width < 75
-            back_tag = "[bold cyan][< Esc][/bold cyan] " if is_mobile else ""
-            header = self.query_one("#chat-header", Static)
-            header.update(f"{back_tag}Chat: [bold]{self.current_dialog['name']}[/bold]")
+            # Update header with user status
+            self.update_chat_header()
             
             # On mobile, switch to full-screen chat view
             self.mobile_view = "chat"
@@ -339,13 +360,20 @@ class TelegramTUI(App):
 
     @work(exclusive=True)
     async def load_messages(self) -> None:
-        """Load messages for active chat"""
+        """Load messages for active chat and refresh online status"""
         log = self.query_one("#messages-log", RichLog)
         log.clear()
         log.write("[dim]Loading messages...[/dim]")
 
         if not self.current_entity:
             return
+
+        # Fetch fresh online / last seen status in background
+        try:
+            fresh_status = await self.tg.get_fresh_entity_status(self.current_entity)
+            self.update_chat_header(fresh_status)
+        except Exception:
+            pass
 
         try:
             messages = await self.tg.get_chat_history(self.current_entity)
@@ -360,6 +388,7 @@ class TelegramTUI(App):
         except Exception as e:
             log.clear()
             log.write(f"[dim]Error: {e}[/dim]")
+
 
     def render_message_line(self, m: dict) -> None:
         """Render message in clean monochrome format"""

@@ -7,8 +7,12 @@ from telethon.tl.types import (
     MessageMediaContact, MessageMediaGeo,
     MessageMediaPoll, DocumentAttributeSticker,
     DocumentAttributeAudio, DocumentAttributeFilename,
-    DocumentAttributeVideo, DocumentAttributeAnimated
+    DocumentAttributeVideo, DocumentAttributeAnimated,
+    UserStatusOnline, UserStatusOffline,
+    UserStatusRecently, UserStatusLastWeek,
+    UserStatusLastMonth, UserStatusEmpty
 )
+
 
 import config
 
@@ -231,4 +235,63 @@ class TelegramManager:
             return False, "Failed to download."
         except Exception as e:
             return False, f"Error: {e}"
+
+    def get_entity_status(self, entity):
+        """Format online/offline status and last seen timestamp"""
+        if not entity:
+            return ""
+
+        if isinstance(entity, User):
+            if getattr(entity, 'bot', False):
+                return "bot"
+            if getattr(entity, 'is_self', False):
+                return ""
+
+            status = getattr(entity, 'status', None)
+            if not status:
+                return ""
+
+            if isinstance(status, UserStatusOnline):
+                return "online"
+            elif isinstance(status, UserStatusOffline):
+                if status.was_online:
+                    try:
+                        local_dt = status.was_online.astimezone()
+                        now = datetime.now(local_dt.tzinfo)
+                        if local_dt.date() == now.date():
+                            return f"last seen today at {local_dt.strftime('%H:%M')}"
+                        elif (now.date() - local_dt.date()).days == 1:
+                            return f"last seen yesterday at {local_dt.strftime('%H:%M')}"
+                        else:
+                            return f"last seen {local_dt.strftime('%d.%m.%y %H:%M')}"
+                    except Exception:
+                        return f"last seen {status.was_online.strftime('%H:%M')}"
+                return "offline"
+            elif isinstance(status, UserStatusRecently):
+                return "last seen recently"
+            elif isinstance(status, UserStatusLastWeek):
+                return "last seen within a week"
+            elif isinstance(status, UserStatusLastMonth):
+                return "last seen within a month"
+            elif isinstance(status, UserStatusEmpty):
+                return ""
+            return "offline"
+
+        elif isinstance(entity, Channel):
+            if not entity.megagroup:
+                return "channel"
+            return "group"
+        elif isinstance(entity, Chat):
+            return "group"
+
+        return ""
+
+    async def get_fresh_entity_status(self, entity):
+        """Fetch fresh user/chat status from Telegram"""
+        try:
+            fresh_entity = await self.client.get_entity(entity)
+            return self.get_entity_status(fresh_entity)
+        except Exception:
+            return self.get_entity_status(entity)
+
 
