@@ -1,13 +1,13 @@
 # 🖤 Minimalist Telegram CLI (OLED & Dopamine-Free)
 
-A clean, distraction-free, and keyboard-driven **Terminal User Interface (TUI)** client for Telegram. Built for digital minimalism, low dopamine consumption, and maximum focus on both **Linux Desktop** and **Android (Termux)**.
+A clean, distraction-free, and keyboard-driven **Terminal User Interface (TUI)** client for Telegram. Designed for digital minimalism, low dopamine consumption, and maximum focus across **macOS**, **Linux Desktop**, and **Android (Termux)**.
 
 ---
 
 ## 📸 Preview
 
-### 💻 Linux Desktop Terminal
-![Linux Desktop Preview](assets/preview-desktop.svg)
+### 💻 Desktop Terminal (macOS / Linux)
+![Desktop Preview](assets/preview-desktop.svg)
 
 ### 📱 Android Mobile (Termux / OneUI)
 <p align="center">
@@ -19,11 +19,51 @@ A clean, distraction-free, and keyboard-driven **Terminal User Interface (TUI)**
 ## ✨ Features
 
 - **🖤 OLED Pure Black:** True black (`#000000`) theme with crisp typography. Zero distractions.
+- **🟢 Online & Last Seen Status:** See real-time online status and exact last-seen timestamps in the chat header (e.g. `• online`, `• last seen today at 11:10`).
 - **🛡️ Dopamine Control:** No auto-downloading images, videos, stickers, or animated gifs. Media is labeled compactly (e.g. `[Photo #1]`, `[Voice 15s #2]`).
-- **👁️ On-Demand Media Viewer:** Need to view an invoice or photo? Open it only when you explicitly choose to via `/1` or `F3`.
+- **🏷️ Telegram Premium Emojis:** Custom Telegram Premium animated emojis are indexed (`[Emoji #1]`) and can be viewed on-demand in high resolution.
+- **👁️ On-Demand Media Viewer:** View invoices, photos, or audio only when you explicitly choose to via `/<id>` (e.g. `/1`) or `F3`.
 - **📤 Easy File & Media Upload:** Send photos, videos, audio, or files directly from your terminal using `/send <path> [caption]`.
+- **📱 Responsive Mobile Mode:** Automatically adapts to mobile screen sizes (Termux). Fullscreen chat list and fullscreen active chat with a single tap/`Esc` to toggle.
 - **🚫 Distraction Filtering:** Public channels are hidden by default to prevent doomscrolling. Press `F2` to toggle if needed.
 - **⚡ Super Fast Navigation:** Jump between chats, search, and type messages entirely using keyboard shortcuts.
+
+---
+
+## 🍏 macOS Installation (Step-by-Step)
+
+Works out of the box on macOS Terminal, iTerm2, Ghostty, Alacritty, and Kitty.
+
+### 1. Install Python 3 (if not installed)
+If you have [Homebrew](https://brew.sh), simply run:
+```bash
+brew install python git
+```
+
+### 2. Clone the repository
+```bash
+git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git
+cd telegram-cli
+```
+
+### 3. Automatic Setup
+Run the macOS setup script:
+```bash
+bash setup_mac.sh
+```
+> This creates a virtual environment, installs dependencies, and prepares your global launcher!
+
+### 4. Configure your Telegram credentials
+```bash
+nano .env
+```
+Paste your `TELEGRAM_API_ID` and `TELEGRAM_API_HASH` from [my.telegram.org](https://my.telegram.org), then save (`Ctrl + O`, `Enter`, `Ctrl + X`).
+
+### 5. Launch!
+```bash
+python3 main.py
+```
+*(Or use `~/.local/bin/tg`)*
 
 ---
 
@@ -39,64 +79,49 @@ cd telegram-cli
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-```
-
-### 3. Install dependencies
-```bash
 pip install -r requirements.txt
 ```
 
-### 4. Configure your Telegram API credentials
-1. Log in to [my.telegram.org](https://my.telegram.org) with your Telegram phone number.
-2. Go to **API development tools** and create an app (name it anything, e.g. `my-cli`).
-3. Copy your `api_id` and `api_hash`.
-4. Copy the environment template:
-   ```bash
-   cp .env.example .env
-   ```
-5. Edit `.env` with your preferred editor and paste your credentials:
-   ```env
-   TELEGRAM_API_ID=12345678
-   TELEGRAM_API_HASH=0123456789abcdef0123456789abcdef
-   ```
+### 3. Configure credentials
+```bash
+cp .env.example .env
+nano .env
+```
+Paste your `TELEGRAM_API_ID` and `TELEGRAM_API_HASH`, then save.
 
-### 5. Launch the application
+### 4. Launch!
 ```bash
 python3 main.py
 ```
-> **First run:** You will be prompted once in the terminal to enter your phone number and the verification code sent to your Telegram app. The session will be saved locally in `data/` and you won't need to log in again.
 
 ---
 
-## 📱 Android (Termux / OneUI) Step-by-Step Tutorial
+## 📱 Android (Termux / OneUI) Setup
 
-You can run this client directly on your Android phone (Samsung OneUI / Android 14+) with a 1-tap Homescreen app icon using **Termux:Widget**:
+Run directly on your Android phone with a 1-tap Home Screen icon using **Termux:Widget**:
 
-### Step 1: Install Termux & Termux:Widget
-1. Download and install **[Termux](https://f-droid.org/en/packages/com.termux/)** from F-Droid.
-2. Download and install **[Termux:Widget](https://f-droid.org/en/packages/com.termux.widget/)** from F-Droid.
+### 1. Install Termux & Termux:Widget
+- [Termux (F-Droid)](https://f-droid.org/en/packages/com.termux/)
+- [Termux:Widget (F-Droid)](https://f-droid.org/en/packages/com.termux.widget/)
 
-### Step 2: One-Line Automatic Setup
+### 2. One-Line Automatic Setup
 Open Termux and run this single command:
 ```bash
 pkg update -y && pkg install -y git python && git clone https://github.com/Nurmuhammad-Xusanov/telegram-cli.git && cd telegram-cli && bash setup_android.sh
 ```
-> This automatically installs all dependencies, creates the global `tg` command, and configures the `Termux:Widget` shortcut!
 
-### Step 3: Configure credentials
+### 3. Configure credentials
 ```bash
 nano .env
 ```
-Paste your `TELEGRAM_API_ID` and `TELEGRAM_API_HASH`, then press `Ctrl + O`, `Enter`, `Ctrl + X` to save.
+Paste your `TELEGRAM_API_ID` and `TELEGRAM_API_HASH`, then save.
 
-### Step 4: Launch!
+### 4. Launch!
 - **From Termux:** Simply type `tg` and press Enter.
-- **From Android Home Screen (1-Tap Icon):**
+- **From Home Screen (1-Tap Icon):**
   1. Long-press on an empty area of your phone's Home Screen and tap **Widgets**.
   2. Select **Termux:Widget** (or **Termux Shortcut**).
   3. Pick **Telegram** from the list.
-  4. Done! It now opens like a native app directly from your home screen.
-
 
 ---
 
@@ -106,17 +131,17 @@ Paste your `TELEGRAM_API_ID` and `TELEGRAM_API_HASH`, then press `Ctrl + O`, `En
 | Key | Action |
 |---|---|
 | `↑` / `↓` | Navigate chat list |
-| `Enter` | Select and open chat |
+| `Enter` | Select and open chat (fullscreen on mobile) |
 | `Tab` | Switch focus between chat list and message input |
-| `Esc` | Return focus to chat list |
+| `Esc` | Return to chat list (or tap `[< Esc]` on mobile) |
 | `/` | Focus search bar |
 | `F2` | Toggle public channels on/off |
-| `F3` | Open most recent media file in system viewer |
+| `F3` | Open most recent media/emoji file in system viewer |
 | `F5` | Refresh chats list |
 | `Ctrl + C` | Quit application |
 
 ### Chat Commands (typed into message input):
-- `/<id>` or `/open <id>` — Open media by its ID (e.g. `/1` or `/open 2`). Opens in your system gallery/player.
+- `/<id>` or `/open <id>` — Open media or custom emoji by its ID (e.g. `/1` or `/2`). Opens in your system gallery/player (Preview on macOS, xdg-open on Linux, Samsung Gallery on Android).
 - `/send <path> [caption]` — Send a local photo, video, audio, or file to the active chat.
   - *Example:* `/send ~/Downloads/receipt.jpg Monthly payment`
   - *Example:* `/send ~/report.pdf`
