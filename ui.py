@@ -116,10 +116,12 @@ class TelegramTUI(App):
         background: #000000;
         border-bottom: solid #222222;
         color: #ffffff;
-        padding: 1;
+        padding: 0 1;
+        content-align-vertical: middle;
         margin: 0;
         text-style: bold;
     }
+
 
     #messages-log {
         height: 1fr;
@@ -318,7 +320,7 @@ class TelegramTUI(App):
             return
 
         header = self.query_one("#chat-header", Static)
-        name = self.current_dialog["name"]
+        name = self.current_dialog.get("name") or "Unnamed"
         is_mobile = self.size.width < 75
         back_tag = "[bold cyan][< Esc][/bold cyan] " if is_mobile else "Chat: "
 
@@ -327,13 +329,14 @@ class TelegramTUI(App):
 
         if status_text:
             if status_text == "online":
-                status_part = " • [bold white]online[/bold white]"
+                status_part = "  •  [bold white]online[/bold white]"
             else:
-                status_part = f" [dim]• {status_text}[/dim]"
+                status_part = f"  •  [#888888]{status_text}[/#888888]"
         else:
             status_part = ""
 
         header.update(f"{back_tag}[bold]{name}[/bold]{status_part}")
+
 
     async def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
         """Select a chat, expand to full screen on mobile, and mark read on server"""
