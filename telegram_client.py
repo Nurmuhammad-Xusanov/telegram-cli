@@ -10,8 +10,11 @@ from telethon.tl.types import (
     DocumentAttributeVideo, DocumentAttributeAnimated,
     UserStatusOnline, UserStatusOffline,
     UserStatusRecently, UserStatusLastWeek,
-    UserStatusLastMonth, UserStatusEmpty
+    UserStatusLastMonth, UserStatusEmpty,
+    MessageEntityCustomEmoji
 )
+from telethon.tl.functions.messages import GetCustomEmojiDocumentsRequest
+
 
 
 import config
@@ -125,12 +128,17 @@ class TelegramManager:
             else:
                 media_tag = "[Attachment]"
 
+        # Check for Telegram Premium custom emojis
+        custom_emojis = [e for e in (message.entities or []) if isinstance(e, MessageEntityCustomEmoji)]
+        if not media_tag and custom_emojis:
+            media_tag = f"[Emoji x{len(custom_emojis)}]" if len(custom_emojis) > 1 else "[Emoji]"
 
         text = message.raw_text or ""
         if media_tag:
             full_text = f"{media_tag} {text}".strip()
         else:
             full_text = text.strip() or "[Empty message]"
+
 
         return {
             "id": message.id,
@@ -208,10 +216,16 @@ class TelegramManager:
 
 
     async def download_and_open_media(self, message):
-        """Download and open media upon explicit user request"""
-        if not message or not message.media:
-            return False, "No media found in message."
-        
+        """Download and open media or premium custom emoji upon explicit user request"""
+        if not message:
+            return False, "No message selected."
+
+        has_media = bool(message.media)
+        custom_emojis = [e for e in (message.entities or []) if isinstance(e, MessageEntityCustomEmoji)]
+
+        if not has_media and not custom_emojis:
+            return False, "No media or premium emoji found in this message."
+
         cache_dir = config.PROJECT_DIR / "cache"
         try:
             cache_dir.mkdir(parents=True, exist_ok=True)
@@ -219,7 +233,17 @@ class TelegramManager:
             cache_dir = config.PROJECT_DIR
 
         try:
-            file_path = await self.client.download_media(message, file=str(cache_dir))
+            if has_media:
+                file_path = await self.client.download_media(message, file=str(cache_dir))
+            else:
+                # Fetch premium custom emoji document from Telegram
+                emoji_id = custom_emojis[0].document_id
+                docs = await self.client(GetCustomEmojiDocumentsRequest(document_id=[emoji_id]))
+                if docs:
+                    file_path = await self.client.download_media(docs[0], file=str(cache_dir))
+                else:
+                    return False, "Could not fetch premium emoji."
+
             if file_path:
                 import subprocess
                 import shutil
@@ -235,6 +259,7 @@ class TelegramManager:
             return False, "Failed to download."
         except Exception as e:
             return False, f"Error: {e}"
+
 
     def get_entity_status(self, entity):
         """Format online/offline status and last seen timestamp"""

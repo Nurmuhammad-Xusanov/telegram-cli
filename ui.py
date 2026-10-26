@@ -5,6 +5,8 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Input, Static, OptionList, RichLog
 from textual.widgets.option_list import Option
 from textual.binding import Binding
+from telethon.tl.types import MessageEntityCustomEmoji
+
 
 class TelegramTUI(App):
     CSS = """
@@ -400,20 +402,22 @@ class TelegramTUI(App):
         sender_tag = f"[bold]{m['sender_name']}:[/bold]"
 
         raw_msg = m.get("raw_message")
+        has_custom_emoji = raw_msg and any(isinstance(e, MessageEntityCustomEmoji) for e in (raw_msg.entities or []))
         media_hint = ""
-        if raw_msg and raw_msg.media:
+        if raw_msg and (raw_msg.media or has_custom_emoji):
             self.media_messages.append(raw_msg)
             idx = len(self.media_messages)
             media_hint = f" #{idx}"
 
         text = m['text']
         if media_hint:
-            for tag in ["[Photo]", "[GIF]", "[Video]", "[Voice", "[Audio", "[Sticker]", "[File", "[Attachment]"]:
+            for tag in ["[Photo]", "[GIF]", "[Video]", "[Voice", "[Audio", "[Sticker]", "[File", "[Attachment]", "[Emoji"]:
                 if tag in text:
                     text = text.replace(tag, f"{tag[:-1]}{media_hint}]", 1) if tag.endswith("]") else f"{tag}{media_hint}]" if tag.startswith("[") and not tag.endswith("]") else f"{tag} {media_hint}"
                     break
 
         log.write(f"{time_tag} {sender_tag} {text}")
+
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
         """Send message or execute command"""
