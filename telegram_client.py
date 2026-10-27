@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from telethon import TelegramClient, events
+from telethon import TelegramClient, events, utils
 from telethon.tl.types import (
     Channel, Chat, User,
     MessageMediaPhoto, MessageMediaDocument,
@@ -169,6 +169,77 @@ class TelegramManager:
             })
         self.dialogs = dialogs
         return dialogs
+
+    def _get_entity_display_name(self, entity):
+        """Format entity display name with optional @username"""
+        name = ""
+        if hasattr(entity, 'first_name'):
+            name = entity.first_name or ""
+            if getattr(entity, 'last_name', None):
+                name = f"{name} {entity.last_name}".strip()
+        elif hasattr(entity, 'title'):
+            name = entity.title or ""
+
+        username = getattr(entity, 'username', None)
+        if username:
+            if name:
+                name = f"{name} (@{username})"
+            else:
+                name = f"@{username}"
+
+        return name.strip() or "Unnamed"
+
+    async def search_global(self, query, limit=15):
+        """Search Telegram globally for users, channels, and groups"""
+        clean_q = query.strip()
+        if not clean_q or len(clean_q) < 2:
+            return []
+
+        results = []
+        seen_ids = set()
+
+        # 1. Try direct username resolve if applicable
+        username = clean_q.lstrip("@").strip()
+        if username and len(username) >= 3 and username.replace("_", "").isalnum():
+            try:
+                entity = await self.client.get_entity(username)
+                peer_id = utils.get_peer_id(entity)
+                name = self._get_entity_display_name(entity)
+                results.append({
+                    "id": peer_id,
+                    "name": name,
+                    "entity": entity,
+                    "unread_count": 0,
+                    "is_global": True
+                })
+                seen_ids.add(peer_id)
+            except Exception:
+                pass
+
+        # 2. Global Telegram directory search
+        try:
+            from telethon.tl.functions.contacts import SearchRequest
+            search_term = clean_q.lstrip("@") if clean_q.startswith("@") else clean_q
+            found = await self.client(SearchRequest(q=search_term, limit=limit))
+            all_found = list(getattr(found, "users", []) or []) + list(getattr(found, "chats", []) or [])
+            for item in all_found:
+                peer_id = utils.get_peer_id(item)
+                if peer_id in seen_ids:
+                    continue
+                name = self._get_entity_display_name(item)
+                results.append({
+                    "id": peer_id,
+                    "name": name,
+                    "entity": item,
+                    "unread_count": 0,
+                    "is_global": True
+                })
+                seen_ids.add(peer_id)
+        except Exception:
+            pass
+
+        return results
+
 
     async def get_chat_history(self, entity, limit=config.MESSAGE_LIMIT):
         """Fetch chat history"""

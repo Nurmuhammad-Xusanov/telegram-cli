@@ -215,6 +215,8 @@ class TelegramTUI(App):
         self.current_entity = None
         self.media_messages = []
         self.mobile_view = "list"  # "list" or "chat"
+        self.global_results = []
+        self._search_timer = None
 
     def compose(self) -> ComposeResult:
         with Horizontal(id="main-container"):
@@ -274,7 +276,7 @@ class TelegramTUI(App):
                 header.update(f"{mode} — Select a chat")
 
     def apply_filter(self, search_query: str = "") -> None:
-        """Filter dialogs and render single-line username list with active highlight"""
+        """Filter dialogs and render single-line username list with active highlight and global results"""
         query = search_query.strip().lower()
         self.filtered_dialogs = []
         option_list = self.query_one("#chats-list", OptionList)
@@ -284,10 +286,17 @@ class TelegramTUI(App):
         is_mobile = self.size.width < 75
         max_name_len = 35 if is_mobile else 23
 
+        matched_dialog_ids = set()
         for d in self.all_dialogs:
             name = d["name"].strip() or "Unnamed"
-            if query and query not in name.lower():
-                continue
+            if query:
+                uname = getattr(d.get("entity"), "username", None)
+                matches_name = query in name.lower()
+                matches_uname = bool(uname and query in uname.lower())
+                if not (matches_name or matches_uname):
+                    continue
+
+            matched_dialog_ids.add(d["id"])
             self.filtered_dialogs.append(d)
             current_idx = len(self.filtered_dialogs) - 1
 
@@ -295,7 +304,7 @@ class TelegramTUI(App):
             if is_active:
                 active_index = current_idx
 
-            has_unread = d["unread_count"] > 0
+            has_unread = d.get("unread_count", 0) > 0
             badge = " [bold white]1[/bold white]" if has_unread else ""
 
             truncated_name = name[:max_name_len] if len(name) > max_name_len else name
@@ -307,14 +316,66 @@ class TelegramTUI(App):
             else:
                 line = f"  [#777777]{truncated_name}[/#777777]"
 
-            option_list.add_option(Option(line, id=str(d["id"])))
+            option_list.add_option(Option(line, id=f"local-{d['id']}"))
+
+        # Render global search results if active query
+        if query and self.global_results:
+            unique_globals = [g for g in self.global_results if g["id"] not in matched_dialog_ids]
+            if unique_globals:
+                self.filtered_dialogs.append(None)
+                option_list.add_option(Option("[dim]── Global Results ──[/dim]", disabled=True))
+
+                for g in unique_globals:
+                    self.filtered_dialogs.append(g)
+                    current_idx = len(self.filtered_dialogs) - 1
+
+                    is_active = (self.current_dialog and self.current_dialog["id"] == g["id"])
+                    if is_active:
+                        active_index = current_idx
+
+                    g_name = g["name"].strip() or "Unnamed"
+                    truncated_name = g_name[:max_name_len - 2] if len(g_name) > max_name_len - 2 else g_name
+
+                    if is_active:
+                        line = f"[bold white]› 🌐 {truncated_name}[/bold white]"
+                    else:
+                        line = f"  [#888888]🌐 {truncated_name}[/#888888]"
+
+                    option_list.add_option(Option(line, id=f"global-{g['id']}"))
 
         if active_index is not None and 0 <= active_index < len(self.filtered_dialogs):
             option_list.highlighted = active_index
 
     def on_input_changed(self, event: Input.Changed) -> None:
         if event.input.id == "search-input":
-            self.apply_filter(event.value)
+            val = event.value.strip()
+            if self._search_timer:
+                self._search_timer.stop()
+                self._search_timer = None
+
+            if not val:
+                self.global_results = []
+                self.apply_filter("")
+            else:
+                self.apply_filter(event.value)
+                if len(val) >= 3:
+                    self._search_timer = self.set_timer(0.4, lambda: self.trigger_global_search(val))
+
+    def trigger_global_search(self, query: str) -> None:
+        if len(query.strip()) < 2:
+            return
+        self.perform_global_search(query.strip())
+
+    @work(exclusive=True, group="search")
+    async def perform_global_search(self, query: str) -> None:
+        try:
+            results = await self.tg.search_global(query)
+            current_q = self.query_one("#search-input", Input).value.strip()
+            if current_q and current_q.lower() == query.lower():
+                self.global_results = results
+                self.apply_filter(current_q)
+        except Exception:
+            pass
 
     def update_chat_header(self, status_text=None) -> None:
         """Render chat header with user name and online/offline status"""
@@ -344,12 +405,20 @@ class TelegramTUI(App):
         """Select a chat, expand to full screen on mobile, and mark read on server"""
         index = event.option_index
         if 0 <= index < len(self.filtered_dialogs):
-            self.current_dialog = self.filtered_dialogs[index]
-            self.current_entity = self.current_dialog["entity"]
+            item = self.filtered_dialogs[index]
+            if not item:
+                return
+
+            self.current_dialog = item
+            self.current_entity = item["entity"]
             self.media_messages = []
             
+            # If this is a global search item and not yet in all_dialogs, add it
+            if item.get("is_global") and not any(d["id"] == item["id"] for d in self.all_dialogs):
+                self.all_dialogs.insert(0, item)
+
             # Reset unread locally and send read acknowledge to Telegram servers
-            self.current_dialog["unread_count"] = 0
+            item["unread_count"] = 0
             await self.tg.mark_as_read(self.current_entity)
             self.apply_filter(self.query_one("#search-input", Input).value)
             
@@ -420,7 +489,17 @@ class TelegramTUI(App):
 
 
     async def on_input_submitted(self, event: Input.Submitted) -> None:
-        """Send message or execute command"""
+        """Send message, trigger search, or execute command"""
+        if event.input.id == "search-input":
+            val = event.value.strip()
+            if self._search_timer:
+                self._search_timer.stop()
+                self._search_timer = None
+            if val:
+                self.trigger_global_search(val)
+            self.query_one("#chats-list").focus()
+            return
+
         if event.input.id == "message-input":
             val = event.value.strip()
             if not val:

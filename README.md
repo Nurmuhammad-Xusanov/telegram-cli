@@ -20,6 +20,7 @@ A clean, distraction-free, and keyboard-driven **Terminal User Interface (TUI)**
 
 - **🖤 OLED Pure Black:** True black (`#000000`) theme with crisp typography. Zero distractions.
 - **🟢 Online & Last Seen Status:** See real-time online status and exact last-seen timestamps in the chat header (e.g. `• online`, `• last seen today at 11:10`).
+- **🌐 Global Search:** Search for any Telegram user, public channel, or group worldwide directly from the search bar (`@username` or keyword), even if you haven't chatted before.
 - **🛡️ Dopamine Control:** No auto-downloading images, videos, stickers, or animated gifs. Media is labeled compactly (e.g. `[Photo #1]`, `[Voice 15s #2]`).
 - **🏷️ Telegram Premium Emojis:** Custom Telegram Premium animated emojis are indexed (`[Emoji #1]`) and can be viewed on-demand in high resolution.
 - **👁️ On-Demand Media Viewer:** View invoices, photos, or audio only when you explicitly choose to via `/<id>` (e.g. `/1`) or `F3`.
